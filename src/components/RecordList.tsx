@@ -6,6 +6,7 @@ import {
   Space,
   Tag,
   Popconfirm,
+  Button,
   message,
   Card,
   Empty
@@ -18,7 +19,11 @@ import type { Category, RecordWithCategory } from '../types'
 // "花销列表"组件 — 查看、筛选、删除记账记录
 // ============================================================
 
-const RecordList: React.FC = () => {
+interface Props {
+  refreshKey: number
+}
+
+const RecordList: React.FC<Props> = ({ refreshKey }) => {
   const [records, setRecords] = useState<RecordWithCategory[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [filterCategory, setFilterCategory] = useState<number | undefined>(undefined)
@@ -47,7 +52,8 @@ const RecordList: React.FC = () => {
     }
   }
 
-  useEffect(() => { loadData() }, [filterCategory, filterMonth])
+  // 筛选条件变化 或 记一笔成功后刷新
+  useEffect(() => { loadData() }, [filterCategory, filterMonth, refreshKey])
 
   // 删除记录
   const handleDelete = async (id: number) => {

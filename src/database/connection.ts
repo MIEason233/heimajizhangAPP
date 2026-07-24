@@ -1,13 +1,13 @@
 import Database from 'better-sqlite3'
 import { app } from 'electron'
 import { join } from 'path'
+import { setDatabase, getDatabase, closeDatabase } from './db'
 import { insertPresetCategories } from './categories'
 
 // ============================================================
-// 数据库连接管理
+// 数据库连接管理 — 负责建库、建表、初始化
+// 数据库实例托管在 db.ts 中，避免循环依赖
 // ============================================================
-
-let db: Database.Database | null = null
 
 /** 获取数据库文件路径（存在用户数据目录下） */
 function getDbPath(): string {
@@ -15,20 +15,15 @@ function getDbPath(): string {
   return join(userDataPath, 'heimajizhang.db')
 }
 
-/** 获取数据库实例 */
-export function getDatabase(): Database.Database {
-  if (!db) {
-    throw new Error('数据库未初始化，请先调用 initDatabase()')
-  }
-  return db
-}
-
 /** 初始化数据库：建表 + 插入预设数据 */
 export function initDatabase(): void {
   const dbPath = getDbPath()
   console.log('数据库路径:', dbPath)
 
-  db = new Database(dbPath)
+  const db = new Database(dbPath)
+
+  // 将实例注册到 db.ts，供 categories.ts / records.ts 使用
+  setDatabase(db)
 
   // 启用 WAL 模式，提高写入性能
   db.pragma('journal_mode = WAL')
@@ -71,10 +66,5 @@ export function initDatabase(): void {
   console.log('数据库初始化完成')
 }
 
-/** 关闭数据库连接 */
-export function closeDatabase(): void {
-  if (db) {
-    db.close()
-    db = null
-  }
-}
+// 重新导出，保持外部引用兼容
+export { getDatabase, closeDatabase }

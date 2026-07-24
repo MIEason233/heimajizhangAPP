@@ -59,6 +59,7 @@ declare global {
     api: {
       getCategories: () => Promise<Category[]>
       addCategory: (name: string, parentId: number | null, icon: string) => Promise<{ id: number }>
+      updateCategory: (id: number, name: string, icon?: string) => Promise<{ success: boolean }>
       deleteCategory: (id: number) => Promise<{ success: boolean }>
       addRecord: (data: AddRecordData) => Promise<{ id: number }>
       getRecords: (filters?: { categoryId?: number; month?: string }) => Promise<RecordWithCategory[]>

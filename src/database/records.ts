@@ -1,14 +1,9 @@
-import type Database from 'better-sqlite3'
 import type { RecordWithCategory, MonthlyStat } from '../types'
+import { getDatabase } from './db'
 
 // ============================================================
 // 记账记录 — 数据库操作
 // ============================================================
-
-function getDB(): Database.Database {
-  const { getDatabase } = require('./connection')
-  return getDatabase()
-}
 
 /** 新增一条记账记录 */
 export function addRecord(
@@ -17,7 +12,7 @@ export function addRecord(
   categoryId: number,
   note: string
 ): { id: number } {
-  const db = getDB()
+  const db = getDatabase()
   const result = db.prepare(
     'INSERT INTO records (amount, date, category_id, note) VALUES (?, ?, ?, ?)'
   ).run(amount, date, categoryId, note)
@@ -29,7 +24,7 @@ export function getRecords(filters?: {
   categoryId?: number
   month?: string
 }): RecordWithCategory[] {
-  const db = getDB()
+  const db = getDatabase()
 
   let sql = `
     SELECT
@@ -65,14 +60,14 @@ export function getRecords(filters?: {
 
 /** 删除一条记账记录 */
 export function deleteRecord(id: number): { success: boolean } {
-  const db = getDB()
+  const db = getDatabase()
   db.prepare('DELETE FROM records WHERE id = ?').run(id)
   return { success: true }
 }
 
 /** 获取月度统计：按一级分类汇总支出 */
 export function getMonthlyStats(month: string): MonthlyStat[] {
-  const db = getDB()
+  const db = getDatabase()
 
   const sql = `
     SELECT

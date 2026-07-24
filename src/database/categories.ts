@@ -1,5 +1,6 @@
 import type Database from 'better-sqlite3'
 import type { Category } from '../types'
+import { getDatabase } from './db'
 
 // ============================================================
 // 预设分类数据（见 CLAUDE.md 分类体系设计）
@@ -141,7 +142,7 @@ export function insertPresetCategories(db: Database.Database): void {
 
 /** 获取所有分类（含层级结构） */
 export function getAllCategories(): Category[] {
-  const db = getDB()
+  const db = getDatabase()
   return db.prepare(
     'SELECT * FROM categories ORDER BY parent_id IS NULL DESC, sort_order ASC'
   ).all() as Category[]
@@ -149,16 +150,37 @@ export function getAllCategories(): Category[] {
 
 /** 添加自定义分类 */
 export function addCategory(name: string, parentId: number | null, icon: string): { id: number } {
-  const db = getDB()
+  const db = getDatabase()
+  // 计算 sort_order：取同级分类的最大值 + 1
+  const maxOrder = db.prepare(
+    'SELECT MAX(sort_order) as max_order FROM categories WHERE parent_id IS ?'
+  ).get(parentId ?? null) as { max_order: number | null }
+  const nextOrder = (maxOrder?.max_order ?? -1) + 1
+
   const result = db.prepare(
-    'INSERT INTO categories (name, parent_id, icon, is_preset) VALUES (?, ?, ?, 0)'
-  ).run(name, parentId || null, icon)
+    'INSERT INTO categories (name, parent_id, icon, sort_order, is_preset) VALUES (?, ?, ?, ?, 0)'
+  ).run(name, parentId ?? null, icon, nextOrder)
   return { id: Number(result.lastInsertRowid) }
+}
+
+/** 修改分类（预设分类不可修改，只能修改用户自定义的） */
+export function updateCategory(id: number, name: string, icon?: string): { success: boolean } {
+  const db = getDatabase()
+  const cat = db.prepare('SELECT is_preset FROM categories WHERE id = ?').get(id) as Category | undefined
+  if (!cat || cat.is_preset === 1) {
+    return { success: false }
+  }
+  if (icon) {
+    db.prepare('UPDATE categories SET name = ?, icon = ? WHERE id = ?').run(name, icon, id)
+  } else {
+    db.prepare('UPDATE categories SET name = ? WHERE id = ?').run(name, id)
+  }
+  return { success: true }
 }
 
 /** 删除分类（预设分类不可删除，只能删除用户自定义的） */
 export function deleteCategory(id: number): { success: boolean } {
-  const db = getDB()
+  const db = getDatabase()
   const cat = db.prepare('SELECT is_preset FROM categories WHERE id = ?').get(id) as Category | undefined
   if (!cat || cat.is_preset === 1) {
     return { success: false }
@@ -167,8 +189,3 @@ export function deleteCategory(id: number): { success: boolean } {
   return { success: true }
 }
 
-// 循环引用处理：在 connection.ts 的 initDatabase 之后才能用 getDatabase
-function getDB(): Database.Database {
-  const { getDatabase } = require('./connection')
-  return getDatabase()
-}

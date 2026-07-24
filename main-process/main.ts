@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { initDatabase, getDatabase } from '../src/database/connection'
-import { getAllCategories, addCategory, deleteCategory } from '../src/database/categories'
+import { getAllCategories, addCategory, updateCategory, deleteCategory } from '../src/database/categories'
 import { addRecord, getRecords, deleteRecord, getMonthlyStats } from '../src/database/records'
 
 // ============================================================
@@ -73,7 +73,16 @@ function registerIpcHandlers(): void {
   })
 
   ipcMain.handle('categories:add', (_event, name: string, parentId: number | null, icon: string) => {
-    return addCategory(name, parentId, icon)
+    try {
+      return addCategory(name, parentId, icon)
+    } catch (err) {
+      console.error('添加分类失败:', err)
+      throw err
+    }
+  })
+
+  ipcMain.handle('categories:update', (_event, id: number, name: string, icon?: string) => {
+    return updateCategory(id, name, icon)
   })
 
   ipcMain.handle('categories:delete', (_event, id: number) => {

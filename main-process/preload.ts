@@ -13,6 +13,9 @@ const api = {
   addCategory: (name: string, parentId: number | null, icon: string): Promise<any> =>
     ipcRenderer.invoke('categories:add', name, parentId, icon),
 
+  updateCategory: (id: number, name: string, icon?: string): Promise<any> =>
+    ipcRenderer.invoke('categories:update', id, name, icon),
+
   deleteCategory: (id: number): Promise<any> =>
     ipcRenderer.invoke('categories:delete', id),
 

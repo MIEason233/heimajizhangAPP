@@ -3,24 +3,30 @@ import { ConfigProvider, Tabs, theme } from 'antd'
 import {
   PlusCircleOutlined,
   UnorderedListOutlined,
-  PieChartOutlined
+  PieChartOutlined,
+  AppstoreOutlined
 } from '@ant-design/icons'
 import zhCN from 'antd/locale/zh_CN'
 import AddRecord from './components/AddRecord'
 import RecordList from './components/RecordList'
 import Statistics from './components/Statistics'
+import CategoryManager from './components/CategoryManager'
 
 // ============================================================
 // 黑马记账 — 主应用组件
-// 使用标签页布局：记一笔 | 花销列表 | 统计
+// 使用标签页布局：记一笔 | 花销列表 | 统计 | 分类管理
 // ============================================================
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('add')
 
-  // 用于刷新列表的 key（记一笔成功后触发列表刷新）
+  // 记一笔成功后，通知列表和统计刷新
   const [refreshKey, setRefreshKey] = useState(0)
   const handleRecordAdded = () => setRefreshKey(k => k + 1)
+
+  // 分类变更后，通知记一笔刷新分类列表
+  const [categoryVersion, setCategoryVersion] = useState(0)
+  const handleCategoryChanged = () => setCategoryVersion(v => v + 1)
 
   const tabItems = [
     {
@@ -31,7 +37,7 @@ const App: React.FC = () => {
           记一笔
         </span>
       ),
-      children: <AddRecord onSuccess={handleRecordAdded} />
+      children: <AddRecord categoryVersion={categoryVersion} onSuccess={handleRecordAdded} />
     },
     {
       key: 'list',
@@ -41,7 +47,7 @@ const App: React.FC = () => {
           花销列表
         </span>
       ),
-      children: <RecordList key={refreshKey} />
+      children: <RecordList refreshKey={refreshKey} />
     },
     {
       key: 'stats',
@@ -51,7 +57,17 @@ const App: React.FC = () => {
           统计概览
         </span>
       ),
-      children: <Statistics key={refreshKey} />
+      children: <Statistics refreshKey={refreshKey} />
+    },
+    {
+      key: 'categories',
+      label: (
+        <span>
+          <AppstoreOutlined />
+          分类管理
+        </span>
+      ),
+      children: <CategoryManager onChange={handleCategoryChanged} />
     }
   ]
 
@@ -77,6 +93,7 @@ const App: React.FC = () => {
             items={tabItems}
             size="large"
             centered
+            destroyInactiveTabPane={false}
           />
         </main>
       </div>

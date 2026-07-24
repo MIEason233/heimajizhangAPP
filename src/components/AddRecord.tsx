@@ -18,21 +18,24 @@ import type { Category, AddRecordData } from '../types'
 // ============================================================
 
 interface Props {
-  onSuccess: () => void // 记录添加成功后的回调（刷新列表）
+  onSuccess: () => void      // 记录添加成功后的回调（刷新列表）
+  categoryVersion: number     // 分类变更时递增，触发分类列表重新加载
 }
 
-const AddRecord: React.FC<Props> = ({ onSuccess }) => {
+const AddRecord: React.FC<Props> = ({ onSuccess, categoryVersion }) => {
   const [form] = Form.useForm()
   const [categories, setCategories] = useState<Category[]>([])
   const [subCategories, setSubCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(false)
 
-  // 加载分类数据
+  // 加载分类数据（categoryVersion 变化时重新加载）
   useEffect(() => {
     window.api.getCategories().then(all => {
       setCategories(all)
+    }).catch(err => {
+      console.error('加载分类失败:', err)
     })
-  }, [])
+  }, [categoryVersion])
 
   // 一级分类列表（parent_id === null）
   const parentCategories = categories.filter(c => c.parent_id === null)

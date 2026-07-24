@@ -9,14 +9,19 @@ import type { MonthlyStat } from '../types'
 // "统计概览"组件 — 月度支出图表
 // ============================================================
 
-const Statistics: React.FC = () => {
+interface Props {
+  refreshKey: number
+}
+
+const Statistics: React.FC<Props> = ({ refreshKey }) => {
   const [month, setMonth] = useState(dayjs().format('YYYY-MM'))
   const [stats, setStats] = useState<MonthlyStat[]>([])
   const [loading, setLoading] = useState(false)
 
+  // 月份变化 或 记一笔成功后刷新
   useEffect(() => {
     loadStats()
-  }, [month])
+  }, [month, refreshKey])
 
   const loadStats = async () => {
     setLoading(true)
