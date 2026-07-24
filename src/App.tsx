@@ -11,10 +11,11 @@ import AddRecord from './components/AddRecord'
 import RecordList from './components/RecordList'
 import Statistics from './components/Statistics'
 import CategoryManager from './components/CategoryManager'
+import SnakeGame from './components/SnakeGame'
 
 // ============================================================
 // 黑马记账 — 主应用组件
-// 使用标签页布局：记一笔 | 花销列表 | 统计 | 分类管理
+// 使用标签页布局：记一笔 | 花销列表 | 统计 | 分类管理 | 贪吃蛇
 // ============================================================
 
 const App: React.FC = () => {
@@ -68,6 +69,15 @@ const App: React.FC = () => {
         </span>
       ),
       children: <CategoryManager onChange={handleCategoryChanged} />
+    },
+    {
+      key: 'snake',
+      label: (
+        <span>
+          🐍 贪吃蛇
+        </span>
+      ),
+      children: <SnakeGame isActive={activeTab === 'snake'} />
     }
   ]
 
